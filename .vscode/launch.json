@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Main",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/edgedetection",
+            "args": ["-T", "${input:threshold}", "${input:image}"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "make"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "threshold",
+            "type": "promptString",
+            "description": "Schnellwert",
+            "default": "50"
+        },
+        {   
+            "id": "image",
+            "type": "promptString",
+            "description": "Pfad zur Bilddatei (.pgm)",
+            "default": "test/data/input/img_P.pgm"
+        }
+    ]
+}
