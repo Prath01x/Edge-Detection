@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 void apply_threshold(float *img, int w, int h, int T) {
    int size= w*h;
@@ -78,75 +79,88 @@ void array_destroy(float *m) {
 
    
 }
+void skip_comments(FILE *file) {
+    int ch;
+    while ((ch = fgetc(file)) != EOF) {
+        // Skip whitespace
+        if (isspace(ch)) {
+            continue;
+        }
+        // Skip comments
+        if (ch == '#') {
+            while ((ch = fgetc(file)) != '\n' && ch != EOF);
+        } else {
+            ungetc(ch, file);
+            break;
+        }
+    }
+}
 
 
 // Function to read an image from a PGM file
 float* read_image_from_file(const char* filename, int* w, int* h) {
-    FILE* file = fopen(filename, "r");
-    if (!file) {
-        fprintf(stderr, "Error: File %s does not exist.\n", filename);
-        return NULL;
+FILE *pgm=fopen(filename, "r");
+if(!pgm){
+    fprintf(stderr,"File doesn't exist ");
+    return NULL;
     }
-
-    // Read the header
-    char magic_number[3];
-    if (!fgets(magic_number, sizeof(magic_number), file)) {
-        fprintf(stderr, "Error: Invalid PGM file.\n");
-        fclose(file);
-        return NULL;
-    }
-
-    if (strcmp(magic_number, "P2") != 0) {
-        fprintf(stderr, "Error: Unsupported PGM format. Only P2 format is supported.\n");
-        fclose(file);
-        return NULL;
-    }
-
-    // Skip comments
-    char ch;
-    while ((ch = fgetc(file)) == '#') {
-        while (fgetc(file) != '\n');
-    }
-    ungetc(ch, file);
-
-    // Read image dimensions
-    if (fscanf(file, "%d %d", w, h) != 2 || *w <= 0 || *h <= 0) {
+char Buffer[3];
+if(!fgets(Buffer, sizeof(Buffer),pgm)){
+    fprintf(stderr,"File is of incorrect format");
+    return NULL;
+}
+if(strcmp(Buffer,"P2")!=0){
+    fprintf(stderr,"Not P2 file");
+    fclose(pgm);
+    return NULL;
+}
+skip_comments(pgm);
+// Read image dimensions
+    if (fscanf(pgm, "%d %d", w, h) != 2 || *w <= 0 || *h <= 0) {
         fprintf(stderr, "Error: Invalid image dimensions.\n");
-        fclose(file);
+        fclose(pgm);
         return NULL;
     }
-
-    // Read maximum gray value
-    int max_gray_value;
-    if (fscanf(file, "%d", &max_gray_value) != 1 || max_gray_value != 255) {
+skip_comments(pgm);
+ // Read maximum gray value
+    int fucks;
+    if (fscanf(pgm, "%d", &fucks) != 1 || fucks != 255) {
         fprintf(stderr, "Error: Invalid maximum gray value. Must be 255.\n");
-        fclose(file);
+        fclose(pgm);
         return NULL;
     }
-
-    // Allocate memory for image data
-    float* img = array_init(*w * *h);
+skip_comments(pgm);
+float* img = array_init(*w * *h);
     if (!img) {
         fprintf(stderr, "Error: Memory allocation failed.\n");
-        fclose(file);
+        fclose(pgm);
         return NULL;
     }
 
-    // Read pixel data
+  // Read pixel data
     for (int i = 0; i < *w * *h; ++i) {
         int pixel_value;
-        if (fscanf(file, "%d", &pixel_value) != 1 || pixel_value < 0 || pixel_value > 255) {
+        if (fscanf(pgm, "%d", &pixel_value) != 1 || pixel_value < 0 || pixel_value > 255) {
             fprintf(stderr, "Error: Invalid pixel value at position %d.\n", i);
             array_destroy(img);
-            fclose(file);
+            fclose(pgm);
             return NULL;
         }
         img[i] = (float)pixel_value;
     }
+    //Extra Pixel
+    int extra_pixel_value;
+    if (fscanf(pgm, "%d", &extra_pixel_value) == 1) {
+        fprintf(stderr, "Error: Extra pixel values found in the file.\n");
+        free(img);
+        fclose(pgm);
+        return NULL;
+    }
 
-    fclose(file);
+    fclose(pgm);
     return img;
 }
+
 
 
 
